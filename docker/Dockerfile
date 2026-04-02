@@ -96,6 +96,9 @@ RUN apt-get update && \
 COPY --from=backend-build /app/docker/config.json ./
 COPY --from=backend-build /usr/local/share/fonts/NotoSansSC-Regular.ttf /usr/share/fonts/NotoSansSC-Regular.ttf
 
+# 允许以 user: "1000:1000" 运行时写入 /app（mesio 会在工作目录创建日志文件）
+RUN chown -R 1000:1000 /app
+
 ENV NODE_ENV=production
 ENV IS_DOCKER=true
 ENV BAIDUPCS_GO_CONFIG_DIR=/app/data
@@ -145,6 +148,9 @@ COPY --from=base /app/docker/fullstack-Caddyfile /etc/caddy/Caddyfile
 COPY --from=base /app/docker/start.sh /app/start.sh
 
 RUN chmod +x /app/start.sh
+
+# 允许以 user: "1000:1000" 运行时写入 /app（mesio 会在工作目录创建日志文件）
+RUN chown -R 1000:1000 /app
 
 ENV NODE_ENV=production
 ENV IS_DOCKER=true
