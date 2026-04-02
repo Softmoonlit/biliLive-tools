@@ -15,4 +15,8 @@ packages/CLI/config.json
 docs/.vitepress/dist
 docs/.vitepress/cache
 
+docker/video
+docker/data
+docker/fonts
+
 .DS_Store
