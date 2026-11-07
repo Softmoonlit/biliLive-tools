@@ -13,6 +13,8 @@ import type {
   ScreenChatMessage,
 } from "../types/types.js";
 import WebSocket from "ws";
+import type { LinkmicAnchor } from "./types.js";
+export type { LinkmicAnchor } from "./types.js";
 
 interface Events {
   open: () => void;
@@ -31,6 +33,8 @@ interface Events {
   message: (message: Message) => void;
   privilegeScreenChat: (message: PrivilegeScreenChatMessage) => void;
   screenChat: (message: ScreenChatMessage) => void;
+  linkmicAnchor: (anchor: LinkmicAnchor) => void;
+  linkmicError: (error: Error) => void;
 }
 declare class DouYinDanmaClient extends TypedEmitter<Events> {
   private ws: WebSocket;
@@ -41,6 +45,7 @@ declare class DouYinDanmaClient extends TypedEmitter<Events> {
       autoReconnect?: number;
       heartbeatInterval?: number;
       cookie?: string;
+      enableLinkmic?: boolean;
     },
   );
   connect(): Promise<void>;

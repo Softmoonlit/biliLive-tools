@@ -1,3 +1,10 @@
+export interface LinkmicAnchor {
+  secUid: string;
+  nickname: string;
+  displayId: string;
+  userId: string;
+}
+
 interface Common {
   method: string;
   msgId: string;

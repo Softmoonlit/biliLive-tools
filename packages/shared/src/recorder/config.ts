@@ -45,6 +45,8 @@ export default class RecorderConfig {
   ):
     | (Recorder & {
         auth?: string;
+        /** 仅由全局配置派生，不作为直播间独立设置保存 */
+        recordLinkmic: boolean;
         formatPriorities?: Array<"hls" | "flv">;
       })
     | null {
@@ -249,6 +251,9 @@ export default class RecorderConfig {
       recorderType: getValue("recorderType") ?? "ffmpeg",
       auth: auth,
       cookieMode: getValue("cookieMode") ?? "all",
+      // 只接受全局设置，不参与直播间独立配置或 noGlobalFollowFields。
+      recordLinkmic:
+        setting.providerId === "DouYin" && get(globalConfig, "douyin.recordLinkmic") === true,
       useM3U8Proxy: getValue("useM3U8Proxy") ?? false,
       customHost: getValue("customHost"),
       segmentOnTitleChange: getValue("segmentOnTitleChange") ?? false,

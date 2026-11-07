@@ -583,6 +583,15 @@
           </n-form-item>
           <n-form-item>
             <template #label>
+              <Tip
+                text="记录连麦主播"
+                tip="录制时保存连麦、PK 主播名单，下一次录制生效。即使关闭弹幕保存，也会连接消息服务；名单不包含完整上下麦时间线。"
+              ></Tip>
+            </template>
+            <n-switch v-model:value="config.recorder.douyin.recordLinkmic" />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
               <Tip text="双屏直播流" tip="开启后如果是双屏直播，那么就使用拼接的流"></Tip>
             </template>
             <n-switch v-model:value="config.recorder.douyin.doubleScreen" />

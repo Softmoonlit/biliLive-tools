@@ -414,6 +414,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       formatName: "auto",
       cookie: "",
       cookieMode: "all",
+      recordLinkmic: false,
       doubleScreen: true,
       api: "web",
       checkInterval: undefined,

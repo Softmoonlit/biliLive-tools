@@ -4,6 +4,10 @@ import { TypedEmitter } from "tiny-typed-emitter";
 import { decompressGzip, getXMsStub, getSignature, getUserUniqueId } from "./utils.js";
 import protobuf from "./proto.js";
 import { getCookie } from "./api.js";
+import { extractLinkmicAnchors } from "./linkmic.js";
+import type { LinkmicAnchor } from "./linkmic.js";
+
+export type { LinkmicAnchor } from "./linkmic.js";
 
 import type {
   ChatMessage,
@@ -36,6 +40,8 @@ interface Events {
   roomRank: (message: RoomRankMessage) => void;
   privilegeScreenChat: (message: PrivilegeScreenChatMessage) => void;
   screenChat: (message: ScreenChatMessage) => void;
+  linkmicAnchor: (anchor: LinkmicAnchor) => void;
+  linkmicError: (error: Error) => void;
   message: (message: Message) => void;
 }
 
@@ -56,6 +62,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   private isTimeoutCheckRunning: boolean = false;
   private isReconnecting: boolean = false;
   private host: string;
+  private enableLinkmic: boolean;
 
   constructor(
     roomId: string,
@@ -67,6 +74,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
       cookie?: string;
       timeoutInterval?: number;
       host?: string;
+      enableLinkmic?: boolean;
     } = {},
   ) {
     super();
@@ -80,6 +88,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     this.timeoutInterval = options.timeoutInterval ?? 100000; // 默认100秒
     this.lastMessageTime = Date.now();
     this.host = options.host ?? "webcast100-ws-web-hl.douyin.com";
+    this.enableLinkmic = options.enableLinkmic ?? false;
 
     if (this.autoStart) {
       this.connect();
@@ -393,6 +402,14 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
         } else if (msg.method === "WebcastScreenChatMessage") {
           const message = ScreenChatMessage.decode(msg.payload);
           this.handleScreenChatMessage(message.toJSON() as ScreenChatMessage);
+        } else if (this.enableLinkmic && /(?:Link|Battle)/.test(msg.method)) {
+          try {
+            for (const anchor of extractLinkmicAnchors(msg.payload)) {
+              this.emit("linkmicAnchor", anchor);
+            }
+          } catch (error) {
+            this.emit("linkmicError", error instanceof Error ? error : new Error(String(error)));
+          }
         } else {
           // WebcastRanklistHourEntranceMessage,WebcastInRoomBannerMessage,WebcastRoomStreamAdaptationMessage
         }

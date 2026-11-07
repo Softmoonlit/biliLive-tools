@@ -46,6 +46,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   auth?: string;
   /** 抖音 Cookie 使用范围，默认为全部 */
   cookieMode?: "all" | "stream" | "danma";
+  /** 抖音连麦主播名单，由应用的全局设置传入 */
+  recordLinkmic?: boolean;
   /** cookie所有者uid,B站弹幕录制 */
   uid?: number | string;
   /** 画质匹配重试次数 */

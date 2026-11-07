@@ -431,6 +431,8 @@ interface DouyinRecorderConfig extends RecorderCheckConfig {
   cookie: string;
   /** Cookie 使用范围，默认为全部 */
   cookieMode: "all" | "stream" | "danma";
+  /** 记录连麦主播名单，全局开关，下次录制生效 */
+  recordLinkmic: boolean;
   /** 流格式 */
   formatName: FormatName;
   /** 是否使用双屏直播流 */

@@ -20,6 +20,7 @@ import type {
 import { getInfo, getStream } from "./stream.js";
 import { singleton } from "./utils.js";
 import { resolveShortURL, parseUser } from "./douyin_api.js";
+import { LinkmicListWriter } from "./linkmic.js";
 
 import DouYinDanmaClient from "douyin-danma-listener";
 
@@ -125,8 +126,13 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     return this.recordHandle;
   }
 
+  // 每次开录固定读取，后续全局设置变化从下一次录制生效。
+  const recordLinkmic = this.recordLinkmic === true;
+  const saveComments = !this.disableProvideCommentsWhenRecording;
+
   // 获取直播间信息
   let isLiveRadio = false;
+  let selfSecUid = String(this.uid || "");
   try {
     const liveInfo = await getInfo(this.channelId, {
       auth: this.cookieMode === "danma" ? undefined : this.auth,
@@ -134,6 +140,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       uid: this.uid,
     });
     this.liveInfo = liveInfo;
+    selfSecUid = liveInfo.uid || selfSecUid;
     isLiveRadio = liveInfo.isLiveRadio;
     this.emit("stateChange", { state: "idle" });
   } catch (error) {
@@ -234,7 +241,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           recordStartTime,
           extraMs: opts.extraMs,
         }),
-      disableDanma: this.disableProvideCommentsWhenRecording,
+      disableDanma: !saveComments,
       videoFormat: this.videoFormat ?? "auto",
       debugLevel: this.debugLevel ?? "none",
       onlyAudio: stream.onlyAudio,
@@ -254,7 +261,19 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     },
   );
 
+  const linkmicWriter = recordLinkmic
+    ? new LinkmicListWriter({
+        selfSecUid,
+        selfChannelId: String(this.channelId),
+        onError: (text) => {
+          this.emit("DebugLog", { type: "common", text });
+          this.appendTimeline({ text });
+        },
+      })
+    : undefined;
+
   const handleVideoCreated = async ({ filename, title, cover, rawFilename }) => {
+    linkmicWriter?.videoCreated(filename);
     this.emit("videoFileCreated", { filename, cover, rawFilename });
 
     if (title && this?.liveInfo) {
@@ -301,9 +320,17 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   const client = new DouYinDanmaClient(this?.liveInfo?.liveId as string, {
     cookie: this.cookieMode === "stream" ? undefined : this.auth,
+    enableLinkmic: recordLinkmic,
   });
-  console.log("DouYinDanmaClient", this?.liveInfo?.liveId, this.cookieMode, this.auth);
+  if (linkmicWriter) {
+    client.on("linkmicAnchor", (anchor) => linkmicWriter.add(anchor));
+    client.on("linkmicError", (error) => linkmicWriter.reportError(error));
+    client.on("message", () => {
+      void linkmicWriter.flush();
+    });
+  }
   client.on("chat", (msg) => {
+    if (!saveComments) return;
     const extraDataController = downloader.getExtraDataController();
     if (!extraDataController) return;
     let timestamp: number = Date.now();
@@ -329,6 +356,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     extraDataController.addMessage(comment);
   });
   client.on("privilegeScreenChat", (msg) => {
+    if (!saveComments) return;
     const extraDataController = downloader.getExtraDataController();
     if (!extraDataController) return;
     const comment: Comment = {
@@ -346,6 +374,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     extraDataController.addMessage(comment);
   });
   client.on("screenChat", (msg) => {
+    if (!saveComments) return;
     const extraDataController = downloader.getExtraDataController();
     if (!extraDataController) return;
     const comment: Comment = {
@@ -362,6 +391,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     extraDataController.addMessage(comment);
   });
   client.on("gift", (msg) => {
+    if (!saveComments) return;
     const extraDataController = downloader.getExtraDataController();
     if (!extraDataController) return;
     if (this.saveGiftDanma === false) return;
@@ -457,8 +487,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   //   // console.log("heartbeat");
   // });
 
-  if (!this.disableProvideCommentsWhenRecording) {
-    client.connect();
+  if (saveComments || recordLinkmic) {
+    client.connect().catch((error) => {
+      linkmicWriter?.reportError(error);
+      this.emit("DebugLog", { type: "common", text: `抖音消息连接失败: ${String(error)}` });
+    });
   }
 
   const downloaderArgs = downloader.getArguments();
@@ -493,6 +526,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         type: "common",
         text: `stop record error: ${String(err)}`,
       });
+    } finally {
+      await linkmicWriter?.close();
     }
     this.usedStream = undefined;
     this.usedSource = undefined;

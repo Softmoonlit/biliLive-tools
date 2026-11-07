@@ -240,6 +240,31 @@ describe("RecorderConfig", () => {
   });
 
   describe("配置", () => {
+    describe("抖音连麦主播名单只读取全局开关", () => {
+      it.each([
+        { global: undefined, local: true, providerId: "DouYin", expected: false },
+        { global: false, local: true, providerId: "DouYin", expected: false },
+        { global: true, local: false, providerId: "DouYin", expected: true },
+        { global: true, local: true, providerId: "Bilibili", expected: false },
+      ])("全局 $global，直播间 $local，平台 $providerId", (testCase) => {
+        mockAppConfig.get.mockImplementation((key: string) => {
+          if (key === "recorder") return { douyin: { recordLinkmic: testCase.global } };
+          if (key === "recorders")
+            return [
+              {
+                id: "test",
+                providerId: testCase.providerId,
+                channelId: "123",
+                recordLinkmic: testCase.local,
+                noGlobalFollowFields: ["recordLinkmic"],
+              },
+            ];
+          return null;
+        });
+        expect(recorderConfig.get("test")?.recordLinkmic).toBe(testCase.expected);
+      });
+    });
+
     describe("抖音 Cookie模式", () => {
       it.each([
         { globalMode: undefined, localMode: undefined, follow: true, expected: "all" },
