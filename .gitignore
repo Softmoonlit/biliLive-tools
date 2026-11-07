@@ -17,3 +17,5 @@ docs/.vitepress/cache
 docs/.vitepress/.temp
 
 .DS_Store
+.agents/skills/
+skills-lock.json
