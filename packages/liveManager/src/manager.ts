@@ -782,7 +782,10 @@ export function genSavePathFromRule<
   const provider = manager.providers.find((p) => p.id === recorder.toJSON().providerId);
 
   const now = extData?.startTime ? new Date(extData.startTime) : new Date();
-  const owner = removeSystemReservedChars((extData?.owner ?? "").replaceAll("%", "_"));
+  const owner = removeSystemReservedChars((extData?.owner ?? "").replaceAll("%", "_")).replace(
+    /^\./,
+    "_",
+  );
   const title = removeSystemReservedChars((extData?.title ?? "").replaceAll("%", "_"));
   const remarks = removeSystemReservedChars((recorder.remarks ?? "").replaceAll("%", "_"));
   const channelId = removeSystemReservedChars(String(recorder.channelId));

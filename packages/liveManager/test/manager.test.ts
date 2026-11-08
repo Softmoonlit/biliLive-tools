@@ -504,6 +504,39 @@ describe("RecorderManager", () => {
       expect(path).toBe("Test Provider/Test Owner/Test Title");
     });
 
+    it.each([
+      [".11", "_11"],
+      ["..11", "_.11"],
+      ["主播.11", "主播.11"],
+      ["主播", "主播"],
+    ])("应该避免主播名 %s 生成隐藏目录和文件", (owner, expectedOwner) => {
+      const manager = createRecorderManager({
+        providers: [testProvider],
+        savePathRule: "{platform}/{month}-{date}/{owner}/{owner}-{hour}-{min}-{sec}-{ms}",
+      });
+      const recorder = manager.addRecorder({
+        id: "test-recorder",
+        providerId: "test",
+        channelId: "test-channel",
+        quality: "highest",
+        streamPriorities: [],
+        sourcePriorities: [],
+      });
+      const recordTime = new Date(2026, 8, 18, 12, 30, 45, 123);
+      const liveInfo = {
+        owner,
+        title: ".标题",
+        startTime: recordTime.getTime(),
+        liveStartTime: recordTime,
+        recordStartTime: recordTime,
+      };
+
+      expect(genSavePathFromRule(manager, recorder, liveInfo)).toBe(
+        `Test Provider/09-18/${expectedOwner}/${expectedOwner}-12-30-45-123`,
+      );
+      expect(liveInfo.owner).toBe(owner);
+    });
+
     it("应该处理包含系统保留字符的路径", () => {
       const manager = createRecorderManager({
         providers: [testProvider],
