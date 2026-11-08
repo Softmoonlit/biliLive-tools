@@ -108,6 +108,32 @@
 
       <n-card class="stat-card clickable" hoverable @click="navigateToRecorder">
         <div class="stat-content">
+          <div class="stat-icon monitor-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="4" width="18" height="12" rx="2" />
+              <path d="M8 20h8M12 16v4" />
+              <path d="m8 10 2 2 5-5" />
+            </svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">自动监听</div>
+            <div class="stat-value">{{ statistics?.autoMonitorNum || 0 }}</div>
+          </div>
+        </div>
+      </n-card>
+
+      <n-card class="stat-card clickable" hoverable @click="navigateToRecorder">
+        <div class="stat-content">
           <div class="stat-icon recording-icon">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -314,11 +340,13 @@ const statistics = ref<{
   videoTotalDuaration: number | null;
   recordingNum: number;
   recorderNum: number;
+  autoMonitorNum: number;
 }>({
   startTime: null,
   videoTotalDuaration: null,
   recordingNum: 0,
   recorderNum: 0,
+  autoMonitorNum: 0,
 });
 
 const diskSpace = ref<{
@@ -525,6 +553,11 @@ const navigateToQueue = () => {
 
     &.streamer-icon {
       background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+    }
+
+    &.monitor-icon {
+      background: linear-gradient(135deg, #36b3a8 0%, #64d8b3 100%);
       color: white;
     }
 

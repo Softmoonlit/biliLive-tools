@@ -126,6 +126,11 @@ function getRecorderNum(recording): number {
   }
 }
 
+function getAutoMonitorNum(): number {
+  const recorderManager = container.resolve("recorderManager");
+  return recorderManager.manager.recorders.filter((recorder) => !recorder.disableAutoCheck).length;
+}
+
 function getRecorder(
   args: RecorderAPI["getRecorder"]["Args"],
 ): RecorderAPI["getRecorder"]["Resp"] | undefined {
@@ -519,6 +524,7 @@ export async function batchStopRecord(ids: string[]) {
 export default {
   getRecorders,
   getRecorderNum,
+  getAutoMonitorNum,
   getRecorder,
   getRecorderInfo,
   addRecorder,

@@ -146,11 +146,13 @@ router.get("/statistics", async (ctx) => {
   const videoTotalDuaration = recordHistoryService.getTotalDuration();
   const recordingNum = recorderService.getRecorderNum(true);
   const recorderNum = recorderService.getRecorderNum(false);
+  const autoMonitorNum = recorderService.getAutoMonitorNum();
   ctx.body = {
     startTime: startTime?.value || null,
     videoTotalDuaration,
     recordingNum,
     recorderNum,
+    autoMonitorNum,
   };
 });
 

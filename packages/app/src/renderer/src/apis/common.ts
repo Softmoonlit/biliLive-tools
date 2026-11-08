@@ -153,6 +153,7 @@ export async function appStatistics(): Promise<{
   videoTotalDuaration: number | null;
   recordingNum: number;
   recorderNum: number;
+  autoMonitorNum: number;
 }> {
   const res = await request.get(`/common/statistics`);
   return res.data;
