@@ -23,21 +23,15 @@ jobs:
           - service: backend
             image: bililive-tools-backend
             build-args: ""
-          - service: fullstack
-            image: bililive-tools
-            build-args: |
-              VITE_DEFAULT_SERVER=/api
-              VITE_FULLSTACK=true
     with:
       runner: |
         default=ubuntu-24.04
         linux/amd64=ubuntu-24.04
-        linux/arm64=ubuntu-24.04-arm
       output: image
       push: true
       file: ./docker/Dockerfile
       target: ${{ matrix.service }}
-      platforms: linux/amd64,linux/arm64
+      platforms: linux/amd64
       build-args: ${{ matrix.build-args }}
       cache: true
       cache-scope: ${{ matrix.service }}
