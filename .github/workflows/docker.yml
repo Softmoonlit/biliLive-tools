@@ -44,7 +44,6 @@ jobs:
       cache-mode: max
       job-name-prefix: ${{ matrix.service }}
       meta-images: |
-        renmu1234/${{ matrix.image }}
         ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
       meta-tags: |
         type=raw,value=latest,enable=${{ github.event_name == 'push' }}
@@ -52,9 +51,6 @@ jobs:
         type=raw,value=test,enable=${{ github.event_name == 'workflow_dispatch' }}
     secrets:
       registry-auths: |
-        - registry: docker.io
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
         - registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
