@@ -18,7 +18,7 @@
           </template>
           <n-input
             v-model:value.trim="channelIdUrl"
-            placeholder="输入后自动解析"
+            placeholder="输入链接或抖音、小红书分享文案后自动解析"
             :loading="channelIdResolving"
             @blur="onChannelIdInputEnd"
           >
@@ -864,6 +864,7 @@
 
 <script setup lang="ts">
 import { recoderApi } from "@renderer/apis";
+import { extractRoomShareUrl } from "@renderer/utils/recorder";
 import { useAppConfig } from "@renderer/stores";
 import { useUserInfoStore, useDouyuUserStore } from "@renderer/stores";
 import {
@@ -1022,6 +1023,7 @@ const owner = ref("");
 const channelIdResolving = ref(false);
 const onChannelIdInputEnd = async () => {
   if (!channelIdUrl.value) return;
+  channelIdUrl.value = extractRoomShareUrl(channelIdUrl.value);
   channelIdResolving.value = true;
   try {
     const res = await recoderApi.resolve(channelIdUrl.value);
